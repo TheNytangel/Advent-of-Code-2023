@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -18,17 +17,14 @@ func contains(list []int, number int) bool {
 	return false
 }
 
-func calculate_score(winning_numbers []int, players_numbers []int) int {
+func calculate_count_of_winning_numbers(winning_numbers []int, players_numbers []int) int {
 	number_of_winning_numbers := 0
 	for _, number := range players_numbers {
 		if contains(winning_numbers, number) {
-			number_of_winning_numbers += 1
+			number_of_winning_numbers++
 		}
 	}
-	if number_of_winning_numbers == 0 {
-		return 0
-	}
-	return int(math.Pow(2, float64(number_of_winning_numbers-1)))
+	return number_of_winning_numbers
 }
 
 func parse_numbers(section string) []int {
@@ -52,16 +48,33 @@ func main() {
 
 	scanner := bufio.NewScanner(file)
 
-	total_score := 0
+	copies_of_cards := [220]int{}
+	for i := range copies_of_cards {
+		copies_of_cards[i] = 1
+	}
+	current_line := 0
 	for scanner.Scan() {
 		line := scanner.Text()
 
 		winning_numbers := parse_numbers(line[10:40])
 		players_numbers := parse_numbers(line[42:])
-		total_score += calculate_score(winning_numbers, players_numbers)
+		count_of_winning_numbers := calculate_count_of_winning_numbers(winning_numbers, players_numbers)
+
+		iter_index := 1
+		for iter_index <= count_of_winning_numbers {
+			copies_of_cards[current_line+iter_index] += copies_of_cards[current_line]
+			iter_index++
+		}
+
+		current_line++
 	}
 
-	fmt.Println("Total score:", total_score)
+	sum_of_scratch_cards := 0
+	for i := range copies_of_cards {
+		sum_of_scratch_cards += copies_of_cards[i]
+	}
+	fmt.Println(copies_of_cards)
+	fmt.Println("Total cards:", sum_of_scratch_cards)
 
 	if err = scanner.Err(); err != nil {
 		panic(err)
